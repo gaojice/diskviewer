@@ -1,5 +1,10 @@
 package com.gaojice.diskviewer.processor;
 
-public class ResultProcessorTest {
+import org.junit.Test;
 
+public class ResultProcessorTest {
+	@Test
+	public void emptyTest() {
+
+	}
 }
