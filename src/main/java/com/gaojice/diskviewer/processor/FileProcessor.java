@@ -18,6 +18,7 @@ public class FileProcessor {
 		diskFile.setParent(p);
 		diskFile.setName(file.getName());
 		if (file.isDirectory()) {
+			diskFile.setName(file.getAbsolutePath());
 			diskFile.setType("D");
 			diskFile.setSize(0L);
 			if (diskFile.getParent() == null) {
