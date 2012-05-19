@@ -1,14 +1,25 @@
 package com.gaojice.diskviewer.dao;
 
-import org.apache.ibatis.annotations.Insert;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.gaojice.diskviewer.entity.DiskFile;
 
-public interface DiskFileDao {
-	@Insert("insert into disk_file(id,createDate,lastModified,name,type,size1,parent) values(#{id},#{createDate},#{lastModified},#{name},#{type},#{size},#{parent.id})")
-	public void insert(DiskFile diskFile);
+@Service
+@Transactional
+public class DiskFileDao {
+	@PersistenceContext
+	private EntityManager entityManager;
 
-	@Insert("update disk_file set size1=#{param1} where id=#{param2}")
-	public void update(Long size, String id);
+	public void update(Long size, Long id) {
+		DiskFile diskFile = entityManager.find(DiskFile.class, Long.valueOf(id));
+		diskFile.setSize(size);
+	}
 
+	public void insert(DiskFile diskFile) {
+		entityManager.persist(diskFile);
+	}
 }

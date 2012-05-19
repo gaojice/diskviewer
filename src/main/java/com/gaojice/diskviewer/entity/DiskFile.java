@@ -1,22 +1,35 @@
 package com.gaojice.diskviewer.entity;
 
 import java.util.Date;
-import java.util.UUID;
+import java.util.HashSet;
+import java.util.Set;
 
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+
+@Entity
 public class DiskFile {
-	private String id = UUID.randomUUID().toString();
+
+	private Long id;
 	private Date createDate = new Date();
 	private Date lastModified = new Date();
 	private String name;
 	private String type;
 	private Long size = 0L;
 	private DiskFile parent;
+	private Set<DiskFile> children = new HashSet<DiskFile>();
 
-	public String getId() {
+	@Id
+	@GeneratedValue(strategy = GenerationType.AUTO)
+	public Long getId() {
 		return id;
 	}
 
-	public void setId(String id) {
+	public void setId(Long id) {
 		this.id = id;
 	}
 
@@ -60,12 +73,22 @@ public class DiskFile {
 		this.size = size;
 	}
 
+	@ManyToOne(targetEntity = DiskFile.class)
 	public DiskFile getParent() {
 		return parent;
 	}
 
 	public void setParent(DiskFile parent) {
 		this.parent = parent;
+	}
+
+	@OneToMany(mappedBy = "parent")
+	public Set<DiskFile> getChildren() {
+		return children;
+	}
+
+	public void setChildren(Set<DiskFile> children) {
+		this.children = children;
 	}
 
 }

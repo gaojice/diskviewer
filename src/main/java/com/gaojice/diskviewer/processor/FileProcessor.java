@@ -2,46 +2,62 @@ package com.gaojice.diskviewer.processor;
 
 import java.io.File;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import com.gaojice.diskviewer.dao.DiskFileDao;
 import com.gaojice.diskviewer.entity.DiskFile;
 
-@Service
-public class FileProcessor {
-	@Autowired
+public class FileProcessor implements Runnable {
 	private DiskFileDao diskFileDao;
+	private File root;
+	private DiskFile p;
+	private org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor taskExecutor;
 
-	public void processFile(File file, DiskFile p) {
+	public FileProcessor(DiskFileDao diskFileDao, File root, DiskFile p, ThreadPoolTaskExecutor taskExecutor) {
+		super();
+		this.diskFileDao = diskFileDao;
+		this.root = root;
+		this.p = p;
+		this.taskExecutor = taskExecutor;
+	}
+
+	public void setTaskExecutor(ThreadPoolTaskExecutor taskExecutor) {
+		this.taskExecutor = taskExecutor;
+	}
+
+	public void setDiskFileDao(DiskFileDao diskFileDao) {
+		this.diskFileDao = diskFileDao;
+	}
+
+	public void setRoot(File root) {
+		this.root = root;
+	}
+
+	public void setP(DiskFile p) {
+		this.p = p;
+	}
+
+	public void run() {
 		DiskFile diskFile = new DiskFile();
 		diskFile.setParent(p);
-		diskFile.setName(file.getName());
-		if (file.isDirectory()) {
-			diskFile.setName(file.getAbsolutePath());
+		diskFile.setName(root.getName());
+		if (root.isDirectory()) {
+			diskFile.setName(root.getAbsolutePath());
 			diskFile.setType("D");
 			diskFile.setSize(0L);
-			if (diskFile.getParent() == null) {
-				diskFile.setParent(new DiskFile());
-				diskFile.getParent().setId("");
-			}
+
 			diskFileDao.insert(diskFile);
-			File[] children = file.listFiles();
+			File[] children = root.listFiles();
 			if (children != null) {
 				for (File child : children) {
-					processFile(child, diskFile);
+					FileProcessor fileProcessor = new FileProcessor(diskFileDao, child, diskFile, taskExecutor);
+					taskExecutor.execute(fileProcessor);
 				}
 			}
 		} else {
 			diskFile.setType("F");
-			diskFile.setSize(file.length());
+			diskFile.setSize(root.length());
 			diskFileDao.insert(diskFile);
-			DiskFile parent = diskFile.getParent();
-			while (parent != null) {
-				parent.setSize(parent.getSize() + diskFile.getSize());
-				diskFileDao.update(parent.getSize(), parent.getId());
-				parent = parent.getParent();
-			}
 		}
 	}
 }
